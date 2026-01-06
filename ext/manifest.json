@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "YTShorter",
   "version": "0.1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp/jO3wD9pw109KaB1zbHVRJ3igDycNavSrCdfh8AZZw0yhsnjrtnz6laeP0F2vTI+MLcF0AoAGxcP9gOi/pWzjCSvZa2ow5RF6WVcIU2wCSQJ1xOkB2gVRNGAM4GgGt21gt3p4ZDZ4dNvGxS5WmHndlwFhPYruGQOlQlZji4QOb2bjzSbjm65+yk17btnE8DjnLSeW2YranhhZItGB6jf75cpVeq600fwT+GCmCvc2Acrm8I3kumka2Nz98764I18Q5NCRS/W8GjcW7vHpH+RzhJTNkacsGePys+HBNQfIBUNmtZZl6Lt+1ZpZ3gobVpzQH/jmMfVel7NHmkjzXFlQIDAQAB",
   "description": "Chrome Extension for YTShorter",
   "permissions": ["nativeMessaging", "tabs"],
   "background": {

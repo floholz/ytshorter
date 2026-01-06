@@ -1,3 +1,9 @@
 /.idea
 
+# go app
 /app/ytshorter_app
+
+# chrome extension
+/ext/*.zip
+
+# installer

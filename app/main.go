@@ -13,7 +13,9 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/floholz/ytshorter/app/internal"
 	hook "github.com/robotn/gohook"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -23,8 +25,10 @@ import (
 var iconData []byte
 
 var (
-	activeKeybind = []string{"ctrl", "shift", "u"}
-	hookStarted   = false
+	hookStarted     = false
+	keybindMenuItem *fyne.MenuItem
+	systrayMenu     *fyne.Menu
+	appConfig       internal.Config
 )
 
 type Message struct {
@@ -71,8 +75,7 @@ func registerKeyHook(keybinding []string) {
 	}
 
 	// Log to stderr because stdout is for native messaging
-	keybindingStr := strings.Join(keybinding, "+")
-	keybindingStr = cases.Title(language.English).String(keybindingStr)
+	keybindingStr := keybindingToString(keybinding)
 	_, _ = fmt.Fprintf(os.Stderr, "Registering hotkey: %s\n", keybindingStr)
 
 	hook.Register(hook.KeyDown, keybinding, func(e hook.Event) {
@@ -82,7 +85,13 @@ func registerKeyHook(keybinding []string) {
 		}
 		_ = writeMessage(os.Stdout, msg)
 	})
-	activeKeybind = keybinding
+	appConfig.Keybind = keybinding
+	err := appConfig.Save()
+	if err != nil {
+		fmt.Printf("Failed to save config: %v\n", err)
+	}
+	keybindMenuItem.Label = "Set Keybind [" + keybindingToString(appConfig.Keybind) + "]"
+	systrayMenu.Refresh()
 
 	s := hook.Start()
 	hookStarted = true
@@ -99,8 +108,7 @@ func setKeybind(a fyne.App) {
 	icon := fyne.NewStaticResource("icon", iconData)
 	w.SetIcon(icon)
 
-	keybindingStr := strings.Join(activeKeybind, "+")
-	keybindingStr = cases.Title(language.English).String(keybindingStr)
+	keybindingStr := keybindingToString(appConfig.Keybind)
 	currentLabel := widget.NewLabel("Current keybind: (" + keybindingStr + ")")
 	currentLabel.Alignment = fyne.TextAlignCenter
 
@@ -129,23 +137,38 @@ func setKeybind(a fyne.App) {
 	w.Show()
 }
 
+func keybindingToString(keybinding []string) string {
+	return cases.Title(language.English).String(strings.Join(keybinding, "+"))
+}
+
 func main() {
+	appConfig = internal.LoadConfig()
+
 	a := app.NewWithID("com.floholz.ytshorter")
 
 	if desk, ok := a.(desktop.App); ok {
-		headerItem := fyne.NewMenuItem("YTShorter is running", nil)
+		headerItem := fyne.NewMenuItem("YTShorter is active", nil)
 		headerItem.Disabled = true
-		m := fyne.NewMenu("YTShorter",
-			headerItem,
-			fyne.NewMenuItem("Set Keybind", func() {
+
+		keybindMenuItem = fyne.NewMenuItemWithIcon(
+			"Set Keybind ["+keybindingToString(appConfig.Keybind)+"]",
+			theme.ContentAddIcon(),
+			func() {
 				setKeybind(a)
-			}),
+			})
+
+		quitItem := fyne.NewMenuItemWithIcon("Quit", theme.LogoutIcon(), func() {
+			a.Quit()
+		})
+		quitItem.IsQuit = true
+
+		systrayMenu = fyne.NewMenu("YTShorter",
+			headerItem,
+			keybindMenuItem,
 			fyne.NewMenuItemSeparator(),
-			fyne.NewMenuItem("Quit", func() {
-				a.Quit()
-			}),
+			quitItem,
 		)
-		desk.SetSystemTrayMenu(m)
+		desk.SetSystemTrayMenu(systrayMenu)
 		icon := fyne.NewStaticResource("icon", iconData)
 		desk.SetSystemTrayIcon(icon)
 	}
@@ -173,7 +196,7 @@ func main() {
 	}()
 
 	// Start Global Hotkey Listener
-	registerKeyHook(activeKeybind)
+	registerKeyHook(appConfig.Keybind)
 
 	a.Run()
 }
