@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -12,7 +13,11 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"github.com/floholz/ytshorter/installer/internal"
 )
+
+//go:embed assets/logo.png
+var iconData []byte
 
 type NativeManifest struct {
 	Name           string   `json:"name"`
@@ -23,7 +28,20 @@ type NativeManifest struct {
 }
 
 func main() {
+	a := app.NewWithID("com.floholz.ytshorter_installer")
+	a.SetIcon(fyne.NewStaticResource("logo", iconData))
+	w := a.NewWindow("YT Shorter Installer")
+
+	stepper := internal.NewStepper()
+	w.SetContent(stepper.Content)
+
+	w.Resize(fyne.NewSize(600, 400))
+	w.ShowAndRun()
+}
+
+func _main() {
 	myApp := app.New()
+	myApp.SetIcon(fyne.NewStaticResource("logo", iconData))
 	myWindow := myApp.NewWindow("YT Shorter Installer")
 
 	instruction := widget.NewLabel("1. Open chrome://extensions\n2. Enable Developer Mode\n3. Click 'Load unpacked' and select the 'ext' folder\n4. Copy the Extension ID and paste it below:")
