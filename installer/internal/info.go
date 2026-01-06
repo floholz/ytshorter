@@ -11,7 +11,7 @@ type InfoStep struct {
 }
 
 func (i InfoStep) Title() string {
-	return "YTShorter Installer"
+	return "Install Process"
 }
 
 func (i InfoStep) Content() fyne.CanvasObject {

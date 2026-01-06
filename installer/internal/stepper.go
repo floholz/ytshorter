@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"strconv"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -47,10 +49,18 @@ func NewStepper() *TStepper {
 }
 
 func (s *TStepper) Update(step IStep) {
-	header := widget.NewLabel(step.Title())
-	header.Alignment = fyne.TextAlignCenter
-	header.TextStyle.Bold = true
-	s.Header = header
+	headerLabel := widget.NewLabel(step.Title())
+	headerLabel.Alignment = fyne.TextAlignCenter
+	headerLabel.TextStyle.Bold = true
+
+	progress := widget.NewProgressBar()
+	progress.TextFormatter = func() string {
+		return "[ " + strconv.Itoa(s.StepIndex+1) + " / " + strconv.Itoa(len(s.steps)) + " ]"
+	}
+	progress.Max = float64(len(s.steps) - 1)
+	progress.Value = float64(s.StepIndex)
+
+	s.Header = container.NewVBox(progress, headerLabel, widget.NewSeparator())
 
 	s.Body = step.Content()
 

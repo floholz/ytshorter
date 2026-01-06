@@ -11,7 +11,7 @@ type DoneStep struct {
 }
 
 func (d DoneStep) Title() string {
-	return ""
+	return "Done"
 }
 
 func (d DoneStep) Content() fyne.CanvasObject {
