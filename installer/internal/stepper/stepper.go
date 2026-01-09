@@ -1,4 +1,4 @@
-package internal
+package stepper
 
 import (
 	"strconv"
@@ -13,14 +13,15 @@ type IStep interface {
 	Title() string
 	Content() fyne.CanvasObject
 	OnInit()
-	OnNext()
-	OnPrevious()
+	OnNext() bool
+	OnPrevious() bool
 }
 
 type TStepper struct {
 	Header fyne.CanvasObject
 	Body   fyne.CanvasObject
 	Footer struct {
+		Hint           fyne.CanvasObject
 		Previous, Next *widget.Button
 	}
 	Content   *fyne.Container
@@ -35,13 +36,14 @@ func NewStepper() *TStepper {
 	}
 	stepper.Footer.Previous = widget.NewButton("Previous", stepper.Previous)
 	stepper.Footer.Next = widget.NewButton("Next", stepper.Next)
+	stepper.Footer.Hint = widget.NewLabel("Press 'Next' to proceed!")
 
 	stepper.steps = []IStep{
-		InfoStep{Stepper: stepper},
-		ExtensionStep{Stepper: stepper},
-		ApplicationStep{Stepper: stepper},
-		HostManifestStep{Stepper: stepper},
-		DoneStep{Stepper: stepper},
+		&InfoStep{Stepper: stepper},
+		&ExtensionStep{Stepper: stepper},
+		&ApplicationStep{Stepper: stepper},
+		&HostManifestStep{Stepper: stepper},
+		&DoneStep{Stepper: stepper},
 	}
 	stepper.Update(stepper.steps[stepper.StepIndex])
 	stepper.steps[stepper.StepIndex].OnInit()
@@ -66,7 +68,7 @@ func (s *TStepper) Update(step IStep) {
 
 	s.Content.Objects[0] = container.NewBorder(
 		s.Header,
-		container.NewHBox(layout.NewSpacer(), s.Footer.Previous, s.Footer.Next),
+		container.NewHBox(s.Footer.Hint, layout.NewSpacer(), s.Footer.Previous, s.Footer.Next),
 		nil, nil,
 		s.Body,
 	)
@@ -74,7 +76,10 @@ func (s *TStepper) Update(step IStep) {
 }
 
 func (s *TStepper) Next() {
-	s.steps[s.StepIndex].OnNext()
+	if !s.steps[s.StepIndex].OnNext() {
+		s.Update(s.steps[s.StepIndex])
+		return
+	}
 	if s.StepIndex == len(s.steps)-1 {
 		return
 	}
@@ -85,7 +90,10 @@ func (s *TStepper) Next() {
 }
 
 func (s *TStepper) Previous() {
-	s.steps[s.StepIndex].OnPrevious()
+	if !s.steps[s.StepIndex].OnPrevious() {
+		s.Update(s.steps[s.StepIndex])
+		return
+	}
 	if s.StepIndex == 0 {
 		return
 	}

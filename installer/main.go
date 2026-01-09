@@ -13,7 +13,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"github.com/floholz/ytshorter/installer/internal"
+	"github.com/floholz/ytshorter/installer/internal/stepper"
 )
 
 //go:embed assets/logo.png
@@ -32,10 +32,11 @@ func main() {
 	a.SetIcon(fyne.NewStaticResource("logo", iconData))
 	w := a.NewWindow("YT Shorter Installer")
 
-	stepper := internal.NewStepper()
-	w.SetContent(stepper.Content)
+	w.SetContent(stepper.NewStepper().Content)
 
 	w.Resize(fyne.NewSize(600, 400))
+	w.CenterOnScreen()
+	w.SetFixedSize(true)
 	w.ShowAndRun()
 }
 

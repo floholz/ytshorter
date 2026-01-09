@@ -1,4 +1,4 @@
-package internal
+package stepper
 
 import (
 	"fyne.io/fyne/v2"
@@ -10,26 +10,28 @@ type DoneStep struct {
 	Stepper *TStepper
 }
 
-func (d DoneStep) Title() string {
+func (d *DoneStep) Title() string {
 	return "Done"
 }
 
-func (d DoneStep) Content() fyne.CanvasObject {
+func (d *DoneStep) Content() fyne.CanvasObject {
 	return container.NewCenter(widget.NewLabel("All Done!"))
 }
 
-func (d DoneStep) OnInit() {
+func (d *DoneStep) OnInit() {
 	if d.Stepper != nil && d.Stepper.Footer.Next != nil {
 		d.Stepper.Footer.Next.Text = "Finish & Close"
 	}
 }
 
-func (d DoneStep) OnNext() {
+func (d *DoneStep) OnNext() bool {
 	fyne.CurrentApp().Quit()
+	return true
 }
 
-func (d DoneStep) OnPrevious() {
+func (d *DoneStep) OnPrevious() bool {
 	if d.Stepper != nil && d.Stepper.Footer.Next != nil {
 		d.Stepper.Footer.Next.Text = "Next"
 	}
+	return true
 }
