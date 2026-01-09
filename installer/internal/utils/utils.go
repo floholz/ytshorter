@@ -25,3 +25,25 @@ func MustGetConfigPath() string {
 	}
 	return path
 }
+
+func GetExtensionPath() (string, error) {
+	configPath, err := GetConfigPath()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(configPath, "browser-extension"), nil
+}
+
+func GetAppPath() (string, error) {
+	configPath, err := GetConfigPath()
+	if err != nil {
+		return "", err
+	}
+	switch os.Getenv("GOOS") {
+	case "darwin":
+		return filepath.Join(configPath, "ytshorter.app/Contents/MacOS"), nil
+	case "windows":
+		return filepath.Join(configPath, "ytshorter.exe"), nil
+	}
+	return filepath.Join(configPath, "ytshorter"), nil
+}

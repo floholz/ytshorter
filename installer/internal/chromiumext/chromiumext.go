@@ -94,5 +94,5 @@ func detectForProfile(extensionId, profile string) (*Extension, error) {
 }
 
 func CopyExtensionToConfigFolder() error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("ext: not implemented")
 }

@@ -19,7 +19,6 @@ func (h *HostManifestStep) Content() fyne.CanvasObject {
 }
 
 func (h *HostManifestStep) OnInit() {
-	// do nothing
 	h.Stepper.Footer.Hint = widget.NewLabel("Click Next to setup host manifest.")
 }
 

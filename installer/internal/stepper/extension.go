@@ -95,7 +95,6 @@ func (e *ExtensionStep) Content() fyne.CanvasObject {
 }
 
 func (e *ExtensionStep) OnInit() {
-	// do nothing
 	e.Stepper.Footer.Hint = widget.NewLabel("Click Next to verify installation.")
 	err := chromiumext.CopyExtensionToConfigFolder()
 	if err != nil {
@@ -104,7 +103,6 @@ func (e *ExtensionStep) OnInit() {
 }
 
 func (e *ExtensionStep) OnNext() bool {
-	// do nothing
 	if e.error {
 		return true // continue after second next click
 	}
