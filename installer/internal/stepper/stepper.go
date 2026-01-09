@@ -46,6 +46,7 @@ func NewStepper() *TStepper {
 		&DoneStep{Stepper: stepper},
 	}
 	stepper.Update(stepper.steps[stepper.StepIndex])
+
 	stepper.steps[stepper.StepIndex].OnInit()
 	return stepper
 }

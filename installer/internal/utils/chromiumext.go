@@ -1,4 +1,4 @@
-package chromiumext
+package utils
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ type Extension struct {
 	DisableReasons []int  `json:"disable_reasons,omitempty"`
 }
 
-func Detect(extensionId string, profiles ...string) (*Extension, error) {
+func DetectExtension(extensionId string, profiles ...string) (*Extension, error) {
 	if len(profiles) == 0 {
 		var err error
 		profiles, err = findProfiles()
@@ -94,5 +94,26 @@ func detectForProfile(extensionId, profile string) (*Extension, error) {
 }
 
 func CopyExtensionToConfigFolder() error {
-	return fmt.Errorf("ext: not implemented")
+	srcPath := "./browser-extension"
+
+	// Check if the source directory exists and has files
+	entries, err := os.ReadDir(srcPath)
+	if err != nil {
+		return fmt.Errorf("source directory error: %w", err)
+	}
+	if len(entries) == 0 {
+		return fmt.Errorf("source directory %q is empty", srcPath)
+	}
+
+	dest, err := GetExtensionPath()
+	if err != nil {
+		return err
+	}
+
+	err = os.RemoveAll(dest)
+	if err != nil {
+		return err
+	}
+
+	return os.CopyFS(dest, os.DirFS(srcPath))
 }

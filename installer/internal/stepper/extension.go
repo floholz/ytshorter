@@ -1,6 +1,7 @@
 package stepper
 
 import (
+	_ "embed"
 	"fmt"
 	"net/url"
 	"path"
@@ -12,7 +13,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"github.com/floholz/ytshorter/installer/internal/chromiumext"
+	"github.com/floholz/ytshorter/installer/assets"
 	"github.com/floholz/ytshorter/installer/internal/utils"
 )
 
@@ -58,7 +59,7 @@ func (e *ExtensionStep) Content() fyne.CanvasObject {
 		}()
 	}
 
-	image := canvas.NewImageFromFile(path.Join("assets", "screenshot-browser_extension-anotated.png"))
+	image := canvas.NewImageFromResource(fyne.NewStaticResource("screenshot-browser-extension", assets.ScreenshotBrowserExtensionData))
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(300, 150))
 
@@ -96,10 +97,6 @@ func (e *ExtensionStep) Content() fyne.CanvasObject {
 
 func (e *ExtensionStep) OnInit() {
 	e.Stepper.Footer.Hint = widget.NewLabel("Click Next to verify installation.")
-	err := chromiumext.CopyExtensionToConfigFolder()
-	if err != nil {
-		fmt.Println(err)
-	}
 }
 
 func (e *ExtensionStep) OnNext() bool {
@@ -107,7 +104,7 @@ func (e *ExtensionStep) OnNext() bool {
 		return true // continue after second next click
 	}
 
-	ext, err := chromiumext.Detect("mghmjdfcifpdodkfdggjelopdfopgale", "Default")
+	ext, err := utils.DetectExtension(assets.ExtensionId, "Default")
 	if err != nil || ext == nil || len(ext.DisableReasons) != 0 {
 		e.Stepper.Footer.Hint = widget.NewLabelWithStyle("Installation of the chrome extension could not be verified!", fyne.TextAlignCenter, fyne.TextStyle{Bold: true, Italic: true})
 		e.Stepper.Footer.Hint.Show()

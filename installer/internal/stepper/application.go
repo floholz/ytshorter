@@ -1,7 +1,6 @@
 package stepper
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -9,12 +8,12 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"github.com/floholz/ytshorter/installer/internal/goapp"
 	"github.com/floholz/ytshorter/installer/internal/utils"
 )
 
 type ApplicationStep struct {
 	Stepper *TStepper
+	error   bool
 }
 
 func (a *ApplicationStep) Title() string {
@@ -68,14 +67,18 @@ func (a *ApplicationStep) Content() fyne.CanvasObject {
 
 func (a *ApplicationStep) OnInit() {
 	a.Stepper.Footer.Hint = widget.NewLabel("Click Next to verify application.")
-	err := goapp.CopyAppToConfigFolder()
-	if err != nil {
-		fmt.Println(err)
-	}
 }
 
 func (a *ApplicationStep) OnNext() bool {
-	// do nothing
+	if a.error {
+		return true
+	}
+
+	if verifyErr := utils.VerifyInstallation(); verifyErr != nil {
+		a.error = true
+		return false
+	}
+
 	return true
 }
 

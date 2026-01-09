@@ -28,7 +28,6 @@ func (i *InfoStep) Content() fyne.CanvasObject {
 }
 
 func (i *InfoStep) OnInit() {
-	// do nothing
 	if i.Stepper != nil && i.Stepper.Footer.Previous != nil {
 		i.Stepper.Footer.Previous.Disable()
 		i.Stepper.Footer.Previous.Hide()
@@ -37,7 +36,6 @@ func (i *InfoStep) OnInit() {
 }
 
 func (i *InfoStep) OnNext() bool {
-	// do nothing
 	i.Stepper.Footer.Previous.Enable()
 	i.Stepper.Footer.Previous.Show()
 	return true
