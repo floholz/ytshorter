@@ -9,6 +9,13 @@ chrome.runtime.onMessage.addListener(msg => {
       } else {
         console.warn("Element not found for selector");
       }
+    } else if (msg.action === "pause_short") {
+        const element = document.querySelector('#play-pause-button-shape button');
+        if (element) {
+            element.click();
+        } else {
+            console.warn("Element not found for selector");
+        }
     }
   } else if (msg.type === "HOST_ACTION") {
     console.log("Action from host, triggered by the extension:", msg.action);

@@ -2,147 +2,157 @@ package main
 
 import (
 	_ "embed"
-	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/theme"
-	"fyne.io/fyne/v2/widget"
 	"github.com/floholz/ytshorter/app/internal"
-	hook "github.com/robotn/gohook"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
+	"github.com/floholz/ytshorter/app/internal/keybinding"
+	"github.com/floholz/ytshorter/app/internal/messaging"
 )
 
 //go:embed assets/logo.png
-var iconData []byte
+var AppIconData []byte
 
 var (
-	hookStarted     = false
-	keybindMenuItem *fyne.MenuItem
-	systrayMenu     *fyne.Menu
-	appConfig       internal.Config
+	// hookStarted          = false
+	// keybindMenuItemNext  *fyne.MenuItem
+	// keybindMenuItemPause *fyne.MenuItem
+	kboNext     *keybinding.KeyBindObject
+	kboPause    *keybinding.KeyBindObject
+	SystrayMenu *fyne.Menu
+	AppConfig   internal.Config
 )
 
-type Message struct {
-	Type   string `json:"type"`
-	Action string `json:"action,omitempty"`
-}
+// type Message struct {
+// 	Type   string `json:"type"`
+// 	Action string `json:"action,omitempty"`
+// }
+//
+// func readMessage(r io.Reader) (*Message, error) {
+// 	var length uint32
+// 	if err := binary.Read(r, binary.LittleEndian, &length); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	payload := make([]byte, length)
+// 	if _, err := io.ReadFull(r, payload); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	var msg Message
+// 	if err := json.Unmarshal(payload, &msg); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return &msg, nil
+// }
+//
+// func writeMessage(w io.Writer, msg Message) error {
+// 	payload, err := json.Marshal(msg)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	if err := binary.Write(w, binary.LittleEndian, uint32(len(payload))); err != nil {
+// 		return err
+// 	}
+//
+// 	_, err = w.Write(payload)
+// 	return err
+// }
 
-func readMessage(r io.Reader) (*Message, error) {
-	var length uint32
-	if err := binary.Read(r, binary.LittleEndian, &length); err != nil {
-		return nil, err
-	}
-
-	payload := make([]byte, length)
-	if _, err := io.ReadFull(r, payload); err != nil {
-		return nil, err
-	}
-
-	var msg Message
-	if err := json.Unmarshal(payload, &msg); err != nil {
-		return nil, err
-	}
-
-	return &msg, nil
-}
-
-func writeMessage(w io.Writer, msg Message) error {
-	payload, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-
-	if err := binary.Write(w, binary.LittleEndian, uint32(len(payload))); err != nil {
-		return err
-	}
-
-	_, err = w.Write(payload)
-	return err
-}
-
-func registerKeyHook(keybinding []string) {
-	if hookStarted {
-		hook.End()
-	}
-
-	// Log to stderr because stdout is for native messaging
-	keybindingStr := keybindingToString(keybinding)
-	_, _ = fmt.Fprintf(os.Stderr, "Registering hotkey: %s\n", keybindingStr)
-
-	hook.Register(hook.KeyDown, keybinding, func(e hook.Event) {
-		msg := Message{
-			Type:   "HOTKEY_EVENT",
-			Action: "next_short",
-		}
-		_ = writeMessage(os.Stdout, msg)
-	})
-	appConfig.Keybind = keybinding
-	err := appConfig.Save()
-	if err != nil {
-		fmt.Printf("Failed to save config: %v\n", err)
-	}
-	keybindMenuItem.Label = "Set Keybind [" + keybindingToString(appConfig.Keybind) + "]"
-	systrayMenu.Refresh()
-
-	s := hook.Start()
-	hookStarted = true
-
-	go func() {
-		<-hook.Process(s)
-	}()
-}
-
-func setKeybind(a fyne.App) {
-	w := a.NewWindow("Set Keybind")
-	w.Resize(fyne.NewSize(300, 100))
-	w.SetFixedSize(true)
-	icon := fyne.NewStaticResource("icon", iconData)
-	w.SetIcon(icon)
-
-	keybindingStr := keybindingToString(appConfig.Keybind)
-	currentLabel := widget.NewLabel("Current keybind: (" + keybindingStr + ")")
-	currentLabel.Alignment = fyne.TextAlignCenter
-
-	label := widget.NewLabel("Press your new key (Ctrl+Shift+...)")
-	label.Alignment = fyne.TextAlignCenter
-
-	w.SetContent(container.NewVBox(
-		currentLabel,
-		label,
-		widget.NewButton("Cancel", func() {
-			w.Close()
-		}),
-	))
-
-	w.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
-		newKey := strings.ToLower(string(k.Name))
-		// Fyne key names might need mapping to robotgo hook names if they differ
-		// For simple letters it should be fine.
-
-		newBind := []string{"ctrl", "shift", newKey}
-		registerKeyHook(newBind)
-		w.Close()
-	})
-
-	w.CenterOnScreen()
-	w.Show()
-}
-
-func keybindingToString(keybinding []string) string {
-	return cases.Title(language.English).String(strings.Join(keybinding, "+"))
-}
+// func registerKeyHook(kb []string) {
+// 	if hookStarted {
+// 		hook.End()
+// 	}
+//
+// 	// Log to stderr because stdout is for native messaging
+// 	keybindingStr := keybindingToString(kb)
+// 	_, _ = fmt.Fprintf(os.Stderr, "Registering hotkey: %s\n", keybindingStr)
+//
+// 	hook.Register(hook.KeyDown, kb, func(e hook.Event) {
+// 		msg := Message{
+// 			Type:   "HOTKEY_EVENT",
+// 			Action: "next_short",
+// 		}
+// 		_ = writeMessage(os.Stdout, msg)
+// 	})
+// 	AppConfig.NextKeybind = kb
+// 	err := AppConfig.Save()
+// 	if err != nil {
+// 		fmt.Printf("Failed to save config: %v\n", err)
+// 	}
+// 	keybindMenuItemNext.Label = "Set NextKeybind [" + keybindingToString(AppConfig.NextKeybind) + "]"
+// 	SystrayMenu.Refresh()
+//
+// 	s := hook.Start()
+// 	hookStarted = true
+//
+// 	go func() {
+// 		<-hook.Process(s)
+// 	}()
+// }
+//
+// func setKeybind(a fyne.App) {
+// 	w := a.NewWindow("Set NextKeybind")
+// 	w.Resize(fyne.NewSize(300, 100))
+// 	w.SetFixedSize(true)
+// 	icon := fyne.NewStaticResource("icon", AppIconData)
+// 	w.SetIcon(icon)
+//
+// 	keybindingStr := keybindingToString(AppConfig.NextKeybind)
+// 	currentLabel := widget.NewLabel("Current keybind: (" + keybindingStr + ")")
+// 	currentLabel.Alignment = fyne.TextAlignCenter
+//
+// 	label := widget.NewLabel("Press your new key (Ctrl+Shift+...)")
+// 	label.Alignment = fyne.TextAlignCenter
+//
+// 	w.SetContent(container.NewVBox(
+// 		currentLabel,
+// 		label,
+// 		widget.NewButton("Cancel", func() {
+// 			w.Close()
+// 		}),
+// 	))
+//
+// 	w.Canvas().SetOnTypedKey(func(k *fyne.KeyEvent) {
+// 		newKey := strings.ToLower(string(k.Name))
+// 		// Fyne key names might need mapping to robotgo hook names if they differ
+// 		// For simple letters it should be fine.
+//
+// 		newBind := []string{"ctrl", "shift", newKey}
+// 		registerKeyHook(newBind)
+// 		w.Close()
+// 	})
+//
+// 	w.CenterOnScreen()
+// 	w.Show()
+// }
+//
+// func keybindingToString(keybinding []string) string {
+// 	return cases.Title(language.English).String(strings.Join(keybinding, "+"))
+// }
 
 func main() {
-	appConfig = internal.LoadConfig()
+	AppConfig = internal.LoadConfig()
+
+	kboNext = &keybinding.KeyBindObject{
+		Name:     "Next",
+		Keybind:  AppConfig.Keybinds.Next,
+		Action:   "next_short",
+		MenuItem: nil,
+	}
+	kboPause = &keybinding.KeyBindObject{
+		Name:     "Pause",
+		Keybind:  AppConfig.Keybinds.Pause,
+		Action:   "pause_short",
+		MenuItem: nil,
+	}
 
 	a := app.NewWithID("com.floholz.ytshorter")
 
@@ -150,11 +160,17 @@ func main() {
 		headerItem := fyne.NewMenuItem("YTShorter is active", nil)
 		headerItem.Disabled = true
 
-		keybindMenuItem = fyne.NewMenuItemWithIcon(
-			"Set Keybind ["+keybindingToString(appConfig.Keybind)+"]",
+		kboNext.MenuItem = fyne.NewMenuItemWithIcon(
+			"Set 'Next' Keybind ["+keybinding.KeybindingToString(AppConfig.Keybinds.Next)+"]",
 			theme.ContentAddIcon(),
 			func() {
-				setKeybind(a)
+				keybinding.SetKeybind(a, kboNext, saveConfigAndRefreshSystray)
+			})
+		kboPause.MenuItem = fyne.NewMenuItemWithIcon(
+			"Set 'Pause' Keybind ["+keybinding.KeybindingToString(AppConfig.Keybinds.Pause)+"]",
+			theme.ContentAddIcon(),
+			func() {
+				keybinding.SetKeybind(a, kboPause, saveConfigAndRefreshSystray)
 			})
 
 		quitItem := fyne.NewMenuItemWithIcon("Quit", theme.LogoutIcon(), func() {
@@ -162,21 +178,22 @@ func main() {
 		})
 		quitItem.IsQuit = true
 
-		systrayMenu = fyne.NewMenu("YTShorter",
+		SystrayMenu = fyne.NewMenu("YTShorter",
 			headerItem,
-			keybindMenuItem,
+			kboNext.MenuItem,
+			kboPause.MenuItem,
 			fyne.NewMenuItemSeparator(),
 			quitItem,
 		)
-		desk.SetSystemTrayMenu(systrayMenu)
-		icon := fyne.NewStaticResource("icon", iconData)
+		desk.SetSystemTrayMenu(SystrayMenu)
+		icon := fyne.NewStaticResource("icon", AppIconData)
 		desk.SetSystemTrayIcon(icon)
 	}
 
 	// Start Native Messaging Loop
 	go func() {
 		for {
-			msg, err := readMessage(os.Stdin)
+			msg, err := messaging.ReadMessage(os.Stdin)
 			if err != nil {
 				if err == io.EOF {
 					a.Quit()
@@ -186,17 +203,27 @@ func main() {
 			}
 
 			if msg.Type == "EXTENSION_ACTION" {
-				response := Message{
+				response := messaging.Message{
 					Type:   "HOST_ACTION",
 					Action: "reactions_comming_soon",
 				}
-				_ = writeMessage(os.Stdout, response)
+				_ = messaging.WriteMessage(os.Stdout, response)
 			}
 		}
 	}()
 
 	// Start Global Hotkey Listener
-	registerKeyHook(appConfig.Keybind)
+	keybinding.RegisterKeyHook(kboNext, saveConfigAndRefreshSystray)
+	keybinding.RegisterKeyHook(kboPause, saveConfigAndRefreshSystray)
 
 	a.Run()
+}
+
+func saveConfigAndRefreshSystray(kbo *keybinding.KeyBindObject) {
+	AppConfig.SetKeybind(kbo.Keybind, kbo.Name)
+	err := AppConfig.Save()
+	if err != nil {
+		fmt.Printf("Failed to save config: %v\n", err)
+	}
+	SystrayMenu.Refresh()
 }

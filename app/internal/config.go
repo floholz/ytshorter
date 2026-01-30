@@ -8,11 +8,21 @@ import (
 )
 
 type Config struct {
-	Keybind []string `yaml:"keybind,flow"`
+	Keybinds Keybinds
+}
+
+type Keybinds struct {
+	Next  []string `yaml:"next,flow"`
+	Pause []string `yaml:"pause,flow"`
 }
 
 func NewDefaultConfig() Config {
-	return Config{Keybind: []string{"ctrl", "shift", "u"}}
+	return Config{
+		Keybinds: Keybinds{
+			Next:  []string{"ctrl", "shift", "i"},
+			Pause: []string{"ctrl", "shift", "u"},
+		},
+	}
 }
 
 func getConfigPath() (string, error) {
@@ -55,4 +65,13 @@ func (c *Config) Save() error {
 	}
 
 	return os.WriteFile(path, data, 0644)
+}
+
+func (c *Config) SetKeybind(keybind []string, key string) {
+	switch key {
+	case "Next":
+		c.Keybinds.Next = keybind
+	case "Pause":
+		c.Keybinds.Pause = keybind
+	}
 }
