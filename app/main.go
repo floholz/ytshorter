@@ -100,8 +100,9 @@ func main() {
 	}()
 
 	// Start Global Hotkey Listener
-	keybinding.RegisterKeyHook(kboNext, saveConfigAndRefreshSystray)
-	keybinding.RegisterKeyHook(kboPause, saveConfigAndRefreshSystray)
+	keybinding.RegisterKeyHook(kboNext, nil)
+	keybinding.RegisterKeyHook(kboPause, nil)
+	keybinding.Start()
 
 	a.Run()
 }
@@ -112,5 +113,11 @@ func saveConfigAndRefreshSystray(kbo *keybinding.KeyBindObject) {
 	if err != nil {
 		fmt.Printf("Failed to save config: %v\n", err)
 	}
+
+	// Re-register all hooks and restart
+	keybinding.RegisterKeyHook(kboNext, nil)
+	keybinding.RegisterKeyHook(kboPause, nil)
+	keybinding.Start()
+
 	SystrayMenu.Refresh()
 }

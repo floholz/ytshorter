@@ -24,10 +24,6 @@ type KeyBindObject struct {
 }
 
 func RegisterKeyHook(kbObj *KeyBindObject, refreshCallbackFn func(kbObj *KeyBindObject)) {
-	if kbObj.hookStarted {
-		hook.End()
-	}
-
 	// Log to stderr because stdout is for native messaging
 	keybindingStr := KeybindingToString(kbObj.Keybind)
 	_, _ = fmt.Fprintf(os.Stderr, "Registering hotkey: %s\n", keybindingStr)
@@ -40,12 +36,17 @@ func RegisterKeyHook(kbObj *KeyBindObject, refreshCallbackFn func(kbObj *KeyBind
 		_ = messaging.WriteMessage(os.Stdout, msg)
 	})
 
-	kbObj.MenuItem.Label = "Set '" + kbObj.Name + "' Keybind [" + keybindingStr + "]"
-	refreshCallbackFn(kbObj)
+	if kbObj.MenuItem != nil {
+		kbObj.MenuItem.Label = "Set '" + kbObj.Name + "' Keybind [" + keybindingStr + "]"
+	}
 
+	if refreshCallbackFn != nil {
+		refreshCallbackFn(kbObj)
+	}
+}
+
+func Start() {
 	s := hook.Start()
-	kbObj.hookStarted = true
-
 	go func() {
 		<-hook.Process(s)
 	}()
@@ -79,7 +80,18 @@ func SetKeybind(a fyne.App, kbObj *KeyBindObject, refreshCallbackFn func(kbObj *
 
 		newBind := []string{"ctrl", "shift", newKey}
 		kbObj.Keybind = newBind
-		RegisterKeyHook(kbObj, refreshCallbackFn)
+
+		hook.End()
+		// Re-register all hooks since hook.End() might clear them or we need a fresh start
+		// In a real app we might need a way to re-register all known hooks.
+		// For now, let's just trigger the refresh which should call RegisterKeyHook.
+		// Wait, we need to re-register BOTH hooks if we call hook.End().
+
+		// Actually, gohook's Register is global.
+		// If we want to change one, we might need to End and Re-start everything.
+
+		// Let's assume for now that we want to restart the whole hook system.
+		refreshCallbackFn(kbObj)
 		w.Close()
 	})
 
