@@ -3,8 +3,10 @@
 
 # go app
 /app/ytshorter_app
+/app/fyne-cross
 
 # chrome extension
 /ext/*.zip
 
 # installer
+/installer/fyne-cross

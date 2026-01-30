@@ -49,10 +49,8 @@ func GetAppPath() (string, error) {
 		return "", err
 	}
 	switch runtime.GOOS {
-	case "darwin":
-		return filepath.Join(configPath, "ytshorter.app/Contents/MacOS"), nil
 	case "windows":
-		return filepath.Join(configPath, "ytshorter.exe"), nil
+		return filepath.Join(configPath, "YTShorter.exe"), nil
 	}
 	return filepath.Join(configPath, "ytshorter"), nil
 }
@@ -81,7 +79,7 @@ func GetAppSourcePath() (string, error) {
 
 	switch runtime.GOOS {
 	case "windows":
-		srcPath += ".exe"
+		srcPath = "./application/YTShorter.exe"
 	}
 
 	// Check if the source file exists and is not empty

@@ -1,0 +1,6 @@
+[Details]
+  Icon = "assets/logo.png"
+  Name = "YTShorter_Installer"
+  ID = "com.floholz.ytshorter_installer"
+  Version = "0.3.0"
+  Build = 6
