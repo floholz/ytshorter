@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/floholz/ytshorter/installer/assets"
@@ -23,8 +24,8 @@ func GetConfigPath() (string, error) {
 }
 
 func GetChromePath() (string, error) {
-	if os.Getenv("GOOS") != "linux" {
-		return "", fmt.Errorf("chrome path not supported on %s", os.Getenv("GOOS"))
+	if runtime.GOOS != "linux" {
+		return "", fmt.Errorf("chrome path not supported on %s", runtime.GOOS)
 	}
 
 	userConfigDir, err := os.UserConfigDir()
@@ -47,7 +48,7 @@ func GetAppPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	switch os.Getenv("GOOS") {
+	switch runtime.GOOS {
 	case "darwin":
 		return filepath.Join(configPath, "ytshorter.app/Contents/MacOS"), nil
 	case "windows":
@@ -57,23 +58,28 @@ func GetAppPath() (string, error) {
 }
 
 func GetNativeHostManifestPath() (string, error) {
-	chromePath, err := GetChromePath()
-	if err != nil {
-		return "", err
-	}
-
-	switch os.Getenv("GOOS") {
+	switch runtime.GOOS {
 	case "linux":
+		chromePath, err := GetChromePath()
+		if err != nil {
+			return "", err
+		}
 		return filepath.Join(chromePath, "/NativeMessagingHosts", assets.NativeHostName+".json"), nil
+	case "windows":
+		configPath, err := GetConfigPath()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(configPath, "/NativeMessagingHosts", assets.NativeHostName+".json"), nil
 	}
 
-	return "", fmt.Errorf("native host manifest not supported on %s", os.Getenv("GOOS"))
+	return "", fmt.Errorf("native host manifest not supported on %s", runtime.GOOS)
 }
 
 func GetAppSourcePath() (string, error) {
 	srcPath := "./application/ytshorter_app"
 
-	switch os.Getenv("GOOS") {
+	switch runtime.GOOS {
 	case "windows":
 		srcPath += ".exe"
 	}

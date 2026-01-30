@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/floholz/ytshorter/installer/assets"
 )
@@ -48,5 +49,17 @@ func InstallManifest() error {
 		return err
 	}
 
-	return os.WriteFile(manifestPath, manifestBytes, 0644)
+	err = os.WriteFile(manifestPath, manifestBytes, 0644)
+	if err != nil {
+		return err
+	}
+
+	if runtime.GOOS == "windows" {
+		err = InstallRegistryEntry()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
