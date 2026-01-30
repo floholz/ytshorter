@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/floholz/ytshorter/app/internal/messaging"
 	hook "github.com/robotn/gohook"
@@ -39,7 +40,7 @@ func RegisterKeyHook(kbObj *KeyBindObject, refreshCallbackFn func(kbObj *KeyBind
 		_ = messaging.WriteMessage(os.Stdout, msg)
 	})
 
-	kbObj.MenuItem.Label = "Set NextKeybind [" + keybindingStr + "]"
+	kbObj.MenuItem.Label = "Set '" + kbObj.Name + "' Keybind [" + keybindingStr + "]"
 	refreshCallbackFn(kbObj)
 
 	s := hook.Start()
@@ -54,8 +55,7 @@ func SetKeybind(a fyne.App, kbObj *KeyBindObject, refreshCallbackFn func(kbObj *
 	w := a.NewWindow("Set '" + kbObj.Name + "' Keybind")
 	w.Resize(fyne.NewSize(300, 100))
 	w.SetFixedSize(true)
-	icon := fyne.NewStaticResource("icon", a.Icon().Content())
-	w.SetIcon(icon)
+	w.SetIcon(theme.SettingsIcon())
 
 	keybindingStr := KeybindingToString(kbObj.Keybind)
 	currentLabel := widget.NewLabel("Current keybind: (" + keybindingStr + ")")
