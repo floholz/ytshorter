@@ -19,8 +19,8 @@ type Keybinds struct {
 func NewDefaultConfig() Config {
 	return Config{
 		Keybinds: Keybinds{
-			Next:  []string{"ctrl", "shift", "i"},
-			Pause: []string{"ctrl", "shift", "u"},
+			Next:  []string{"ctrl", "shift", "u"},
+			Pause: []string{"ctrl", "shift", "h"},
 		},
 	}
 }
