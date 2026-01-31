@@ -20,6 +20,7 @@ var AppIconData []byte
 
 var (
 	kboNext     *keybinding.KeyBindObject
+	kboPrevious *keybinding.KeyBindObject
 	kboPause    *keybinding.KeyBindObject
 	SystrayMenu *fyne.Menu
 	AppConfig   internal.Config
@@ -32,6 +33,12 @@ func main() {
 		Name:     "Next",
 		Keybind:  AppConfig.Keybinds.Next,
 		Action:   "next_short",
+		MenuItem: nil,
+	}
+	kboPrevious = &keybinding.KeyBindObject{
+		Name:     "Previous",
+		Keybind:  AppConfig.Keybinds.Previous,
+		Action:   "previous_short",
 		MenuItem: nil,
 	}
 	kboPause = &keybinding.KeyBindObject{
@@ -53,6 +60,12 @@ func main() {
 			func() {
 				keybinding.SetKeybind(a, kboNext, saveConfigAndRefreshSystray)
 			})
+		kboPrevious.MenuItem = fyne.NewMenuItemWithIcon(
+			"Set 'Previous' Keybind ["+keybinding.KeybindingToString(AppConfig.Keybinds.Previous)+"]",
+			theme.ContentAddIcon(),
+			func() {
+				keybinding.SetKeybind(a, kboPrevious, saveConfigAndRefreshSystray)
+			})
 		kboPause.MenuItem = fyne.NewMenuItemWithIcon(
 			"Set 'Pause' Keybind ["+keybinding.KeybindingToString(AppConfig.Keybinds.Pause)+"]",
 			theme.ContentAddIcon(),
@@ -68,6 +81,7 @@ func main() {
 		SystrayMenu = fyne.NewMenu("YTShorter",
 			headerItem,
 			kboNext.MenuItem,
+			kboPrevious.MenuItem,
 			kboPause.MenuItem,
 			fyne.NewMenuItemSeparator(),
 			quitItem,
@@ -101,6 +115,7 @@ func main() {
 
 	// Start Global Hotkey Listener
 	keybinding.RegisterKeyHook(kboNext, nil)
+	keybinding.RegisterKeyHook(kboPrevious, nil)
 	keybinding.RegisterKeyHook(kboPause, nil)
 	keybinding.Start()
 
@@ -116,6 +131,7 @@ func saveConfigAndRefreshSystray(kbo *keybinding.KeyBindObject) {
 
 	// Re-register all hooks and restart
 	keybinding.RegisterKeyHook(kboNext, nil)
+	keybinding.RegisterKeyHook(kboPrevious, nil)
 	keybinding.RegisterKeyHook(kboPause, nil)
 	keybinding.Start()
 

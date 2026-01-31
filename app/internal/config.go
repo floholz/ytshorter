@@ -12,15 +12,17 @@ type Config struct {
 }
 
 type Keybinds struct {
-	Next  []string `yaml:"next,flow"`
-	Pause []string `yaml:"pause,flow"`
+	Next     []string `yaml:"next,flow"`
+	Previous []string `yaml:"previous,flow"`
+	Pause    []string `yaml:"pause,flow"`
 }
 
 func NewDefaultConfig() Config {
 	return Config{
 		Keybinds: Keybinds{
-			Next:  []string{"ctrl", "shift", "u"},
-			Pause: []string{"ctrl", "shift", "h"},
+			Next:     []string{"ctrl", "shift", "u"},
+			Previous: []string{"ctrl", "shift", "i"},
+			Pause:    []string{"ctrl", "shift", "h"},
 		},
 	}
 }
@@ -73,5 +75,7 @@ func (c *Config) SetKeybind(keybind []string, key string) {
 		c.Keybinds.Next = keybind
 	case "Pause":
 		c.Keybinds.Pause = keybind
+	case "Previous":
+		c.Keybinds.Previous = keybind
 	}
 }
